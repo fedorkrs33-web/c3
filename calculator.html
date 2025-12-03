@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --page-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --calculator-bg: #ffffff;
+            --display-bg: #1a1a1a;
+            --display-color: #ffffff;
+            --button-bg: #f0f0f0;
+            --button-color: #333333;
+            --button-hover-bg: #e0e0e0;
+            --operator-bg: #667eea;
+            --operator-hover-bg: #5568d3;
+            --equals-bg: #764ba2;
+            --equals-hover-bg: #653a8a;
+            --clear-bg: #ff6b6b;
+            --clear-hover-bg: #ee5a5a;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--page-bg);
+            padding: 20px;
+            transition: background 0.3s ease;
+        }
+
+        body.dark-theme {
+            --page-bg: radial-gradient(circle at top, #1c1f2b 0%, #0b0d15 100%);
+            --calculator-bg: #161925;
+            --display-bg: #05060b;
+            --display-color: #f8f8f8;
+            --button-bg: #22263a;
+            --button-color: #f5f5f5;
+            --button-hover-bg: #2d3250;
+            --operator-bg: #4f6af0;
+            --operator-hover-bg: #3f57c4;
+            --equals-bg: #8f4fff;
+            --equals-hover-bg: #6b3ac0;
+            --clear-bg: #ff4d4d;
+            --clear-hover-bg: #d83a3a;
+            --shadow-color: rgba(2, 6, 23, 0.7);
+        }
+
+        .calculator {
+            background: var(--calculator-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .theme-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .theme-switch {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: var(--button-color);
+        }
+
+        .theme-switch input {
+            appearance: none;
+            width: 56px;
+            height: 28px;
+            border-radius: 999px;
+            background: var(--button-bg);
+            border: 2px solid var(--operator-bg);
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .theme-switch input::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--operator-bg);
+            transition: transform 0.3s ease;
+        }
+
+        .theme-switch input:checked::after {
+            transform: translateX(28px);
+        }
+
+        .theme-switch span {
+            min-width: 70px;
+        }
+
+        .display {
+            background: var(--display-bg);
+            color: var(--display-color);
+            font-size: 2.5rem;
+            padding: 20px;
+            text-align: right;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        button {
+            background: var(--button-bg);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            color: var(--button-color);
+        }
+
+        button:hover {
+            background: var(--button-hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .operator {
+            background: var(--operator-bg);
+            color: #ffffff;
+        }
+
+        .operator:hover {
+            background: var(--operator-hover-bg);
+        }
+
+        .equals {
+            background: var(--equals-bg);
+            color: #ffffff;
+        }
+
+        .equals:hover {
+            background: var(--equals-hover-bg);
+        }
+
+        .clear {
+            background: var(--clear-bg);
+            color: #ffffff;
+        }
+
+        .clear:hover {
+            background: var(--clear-hover-bg);
+        }
+
+        .zero {
+            grid-column: span 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="theme-toggle">
+            <label class="theme-switch">
+                <span>Светлая</span>
+                <input type="checkbox" id="themeSwitch" aria-label="Переключатель темы">
+                <span>Тёмная</span>
+            </label>
+        </div>
+        <div class="display" id="display">0</div>
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">C</button>
+            <button class="operator" onclick="appendOperator('/')">/</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+            <button class="operator" onclick="deleteLast()">⌫</button>
+            
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('-')">-</button>
+            
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+            
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button class="equals" onclick="calculate()" rowspan="2">=</button>
+            
+            <button class="zero" onclick="appendNumber('0')">0</button>
+            <button onclick="appendDecimal()">.</button>
+        </div>
+    </div>
+
+    <script>
+        document.body.classList.add('light-theme');
+        let display = document.getElementById('display');
+        let currentInput = '0';
+        let shouldResetDisplay = false;
+        const themeSwitch = document.getElementById('themeSwitch');
+
+        function updateDisplay() {
+            display.textContent = currentInput;
+        }
+
+        function setTheme(theme) {
+            document.body.classList.remove('light-theme', 'dark-theme');
+            const nextTheme = theme === 'dark' ? 'dark-theme' : 'light-theme';
+            document.body.classList.add(nextTheme);
+            if (themeSwitch) {
+                themeSwitch.checked = theme === 'dark';
+            }
+        }
+
+        if (themeSwitch) {
+            themeSwitch.addEventListener('change', function(event) {
+                setTheme(event.target.checked ? 'dark' : 'light');
+            });
+        }
+
+        setTheme('light');
+
+        function appendNumber(number) {
+            if (shouldResetDisplay) {
+                currentInput = '0';
+                shouldResetDisplay = false;
+            }
+            
+            if (currentInput === '0') {
+                currentInput = number;
+            } else {
+                currentInput += number;
+            }
+            updateDisplay();
+        }
+
+        function appendDecimal() {
+            if (shouldResetDisplay) {
+                currentInput = '0';
+                shouldResetDisplay = false;
+            }
+            
+            if (!currentInput.includes('.')) {
+                currentInput += '.';
+                updateDisplay();
+            }
+        }
+
+        function appendOperator(operator) {
+            if (shouldResetDisplay) {
+                shouldResetDisplay = false;
+            }
+            
+            const lastChar = currentInput[currentInput.length - 1];
+            if (['+', '-', '*', '/'].includes(lastChar)) {
+                currentInput = currentInput.slice(0, -1) + operator;
+            } else {
+                currentInput += operator;
+            }
+            updateDisplay();
+        }
+
+        function calculate() {
+            try {
+                // Заменяем × на * для вычисления
+                let expression = currentInput.replace(/×/g, '*');
+                
+                // Проверяем на деление на ноль
+                if (expression.includes('/0') && !expression.includes('/0.')) {
+                    currentInput = 'Ошибка';
+                    updateDisplay();
+                    shouldResetDisplay = true;
+                    return;
+                }
+                
+                const result = Function('"use strict"; return (' + expression + ')')();
+                
+                if (isNaN(result) || !isFinite(result)) {
+                    currentInput = 'Ошибка';
+                } else {
+                    currentInput = result.toString();
+                }
+                
+                updateDisplay();
+                shouldResetDisplay = true;
+            } catch (error) {
+                currentInput = 'Ошибка';
+                updateDisplay();
+                shouldResetDisplay = true;
+            }
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            shouldResetDisplay = false;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (shouldResetDisplay) {
+                clearDisplay();
+                return;
+            }
+            
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        // Поддержка клавиатуры
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                appendNumber(key);
+            } else if (key === '.') {
+                appendDecimal();
+            } else if (key === '+') {
+                appendOperator('+');
+            } else if (key === '-') {
+                appendOperator('-');
+            } else if (key === '*') {
+                appendOperator('*');
+            } else if (key === '/') {
+                event.preventDefault();
+                appendOperator('/');
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                clearDisplay();
+            } else if (key === 'Backspace') {
+                deleteLast();
+            }
+        });
+    </script>
+</body>
+</html>
