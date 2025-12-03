@@ -68,49 +68,23 @@
 
         .theme-toggle {
             display: flex;
-            justify-content: center;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
-        .theme-switch {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
+        .theme-button {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 999px;
+            font-size: 1rem;
             font-weight: 600;
+            border: 2px solid transparent;
+            background: var(--button-bg);
             color: var(--button-color);
         }
 
-        .theme-switch input {
-            appearance: none;
-            width: 56px;
-            height: 28px;
-            border-radius: 999px;
-            background: var(--button-bg);
-            border: 2px solid var(--operator-bg);
-            position: relative;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .theme-switch input::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--operator-bg);
-            transition: transform 0.3s ease;
-        }
-
-        .theme-switch input:checked::after {
-            transform: translateX(28px);
-        }
-
-        .theme-switch span {
-            min-width: 70px;
+        .theme-button.active {
+            border-color: var(--operator-bg);
         }
 
         .display {
@@ -193,11 +167,8 @@
 <body>
     <div class="calculator">
         <div class="theme-toggle">
-            <label class="theme-switch">
-                <span>Светлая</span>
-                <input type="checkbox" id="themeSwitch" aria-label="Переключатель темы">
-                <span>Тёмная</span>
-            </label>
+            <button class="theme-button" data-theme="light" onclick="setTheme('light')">Светлая</button>
+            <button class="theme-button" data-theme="dark" onclick="setTheme('dark')">Тёмная</button>
         </div>
         <div class="display" id="display">0</div>
         <div class="buttons">
@@ -231,7 +202,7 @@
         let display = document.getElementById('display');
         let currentInput = '0';
         let shouldResetDisplay = false;
-        const themeSwitch = document.getElementById('themeSwitch');
+        const themeButtons = document.querySelectorAll('.theme-button');
 
         function updateDisplay() {
             display.textContent = currentInput;
@@ -241,14 +212,8 @@
             document.body.classList.remove('light-theme', 'dark-theme');
             const nextTheme = theme === 'dark' ? 'dark-theme' : 'light-theme';
             document.body.classList.add(nextTheme);
-            if (themeSwitch) {
-                themeSwitch.checked = theme === 'dark';
-            }
-        }
-
-        if (themeSwitch) {
-            themeSwitch.addEventListener('change', function(event) {
-                setTheme(event.target.checked ? 'dark' : 'light');
+            themeButtons.forEach((button) => {
+                button.classList.toggle('active', button.dataset.theme === theme);
             });
         }
 
@@ -299,8 +264,10 @@
                 // Заменяем × на * для вычисления
                 let expression = currentInput.replace(/×/g, '*');
                 
-                // Проверяем на деление на ноль
-                if (expression.includes('/0') && !expression.includes('/0.')) {
+                // Проверяем на деление на ноль:
+                // используем регулярное выражение, которое находит "/0",
+                // только если дальше НЕ идёт цифра или точка (т.е. исключаем /05, /0.5 и т.п.)
+                if (/\/0(?![0-9.])/.test(expression)) {
                     currentInput = 'Ошибка';
                     updateDisplay();
                     shouldResetDisplay = true;
